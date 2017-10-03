@@ -19,7 +19,7 @@
     The generated drivers are tested against the following:
         Compiler          :  XC8 1.35
         MPLAB             :  MPLAB X 3.40
-*/
+ */
 
 /*
     (c) 2016 Microchip Technology Inc. and its subsidiaries. You may use this
@@ -41,14 +41,14 @@
 
     MICROCHIP PROVIDES THIS SOFTWARE CONDITIONALLY UPON YOUR ACCEPTANCE OF THESE
     TERMS.
-*/
+ */
 
 #ifndef _MATHACC_H
 #define _MATHACC_H
 
 /**
   Section: Included Files
-*/
+ */
 
 #include <xc.h>
 #include <stdint.h>
@@ -56,7 +56,7 @@
 
 /**
  Section: Data Type Definitions
-*/
+ */
 
 /**
   MATHACC result structure
@@ -70,8 +70,7 @@
     have 36 bits result which is mapped into the structure.
 
  */
-typedef struct
-{
+typedef struct {
     uint8_t byteLL;
     uint8_t byteLH;
     uint8_t byteHL;
@@ -81,230 +80,236 @@ typedef struct
 
 #ifdef __cplusplus  // Provide C++ Compatibility
 
-    extern "C" {
+extern "C" {
 
 #endif
 
-/**
-  Section: Interface Routines
-*/
-        
-/**
-  @Summary
-    Initializes the MATHACC module
+    /**
+      Section: Interface Routines
+     */
 
-  @Description
-    This routine initializes the MATHACC module
+    void MATHACC_SetReference(int16_t setpoint);
 
-  @Preconditions
-    None.
+    int16_t MATHACC_PIDResult(int16_t input);
 
-  @Param
-    None.
 
-  @Returns
-    None.
+    /**
+      @Summary
+        Initializes the MATHACC module
 
-  @Example
-    <code>
-    MATHACCResult result;
+      @Description
+        This routine initializes the MATHACC module
 
-    MATHACC_Initialize();
-    result = MATHACC_PIDControllerResultGet(0x0f, 0xf0);
-    if(true == MATHACC_HasOverflowOccured())
-    {
-        // overflow occured, returned value in 'result' is not correct.
-    }
-    </code>
-*/
-void MATHACC_Initialize(void);
+      @Preconditions
+        None.
 
-/**
-  @Summary
-    Does PID calculation and return the result
+      @Param
+        None.
 
-  @Description
-    This function triggers the module to perform PID caculation and return
-    the PID result.
+      @Returns
+        None.
 
-  @Preconditions
-    MATHACC_Initialize() API should be called before calling this API.
+      @Example
+        <code>
+        MATHACCResult result;
 
-  @Param
-    setpoint - PID Setpoint data
-    input    - PID input data
+        MATHACC_Initialize();
+        result = MATHACC_PIDControllerResultGet(0x0f, 0xf0);
+        if(true == MATHACC_HasOverflowOccured())
+        {
+            // overflow occured, returned value in 'result' is not correct.
+        }
+        </code>
+     */
 
-  @Returns
-    Return the PID result of type 'MATHACCResult'
+    void MATHACC_Initialize(void);
 
-  @Example
-    <code>
-    Refer MATHACC_Initialize() example
-    </code>
-*/
-MATHACCResult MATHACC_PIDControllerModeResultGet(int16_t setpoint, int16_t input);
+    /**
+      @Summary
+        Does PID calculation and return the result
 
-/**
-  @Summary
-    Get the value of Z1 register
+      @Description
+        This function triggers the module to perform PID caculation and return
+        the PID result.
 
-  @Description
-    Get the value of Z1 register
+      @Preconditions
+        MATHACC_Initialize() API should be called before calling this API.
 
-  @Preconditions
-    None
+      @Param
+        setpoint - PID Setpoint data
+        input    - PID input data
 
-  @Param
-    None
+      @Returns
+        Return the PID result of type 'MATHACCResult'
 
-  @Returns
-    Returns 17bit value of Z1 register
+      @Example
+        <code>
+        Refer MATHACC_Initialize() example
+        </code>
+     */
+    MATHACCResult MATHACC_PIDControllerModeResultGet(int16_t setpoint, int16_t input);
 
-  @Example
-    <code>
-    uint32_t value = MATHACC_Z1Get();
-    </code>
-*/
-uint32_t MATHACC_Z1Get(void);
+    /**
+      @Summary
+        Get the value of Z1 register
 
-/**
-  @Summary
-    Get the value of Z2 register
+      @Description
+        Get the value of Z1 register
 
-  @Description
-    Get the value of Z2 register
+      @Preconditions
+        None
 
-  @Preconditions
-    None
+      @Param
+        None
 
-  @Param
-    None
+      @Returns
+        Returns 17bit value of Z1 register
 
-  @Returns
-    Returns 17bit value of Z1 register
+      @Example
+        <code>
+        uint32_t value = MATHACC_Z1Get();
+        </code>
+     */
+    uint32_t MATHACC_Z1Get(void);
 
-   @Example
-    <code>
-    uint32_t value = MATHACC_Z2Get();
-    </code>
-*/
-uint32_t MATHACC_Z2Get(void);
+    /**
+      @Summary
+        Get the value of Z2 register
 
-/**
-  @Summary
-    Load a value to Z1 register
+      @Description
+        Get the value of Z2 register
 
-  @Description
-    Load a value to Z1 register
+      @Preconditions
+        None
 
-  @Preconditions
-    None
+      @Param
+        None
 
-  @Param
-    value - 17bit value to be loaded to Z1 register
+      @Returns
+        Returns 17bit value of Z1 register
 
-  @Returns
-    None
+       @Example
+        <code>
+        uint32_t value = MATHACC_Z2Get();
+        </code>
+     */
+    uint32_t MATHACC_Z2Get(void);
 
-  @Example
-    <code>
-    MATHACC_LoadZ1(0x10000);
-    </code>
-*/
-void MATHACC_LoadZ1(uint32_t value);
+    /**
+      @Summary
+        Load a value to Z1 register
 
-/**
-  @Summary
-    Load a value to Z2 register
+      @Description
+        Load a value to Z1 register
 
-  @Description
-    Load a value to Z2 register
+      @Preconditions
+        None
 
-  @Preconditions
-    None
+      @Param
+        value - 17bit value to be loaded to Z1 register
 
-  @Param
-    value - 17bit value to be loaded to Z2 register
+      @Returns
+        None
 
-  @Returns
-    None
+      @Example
+        <code>
+        MATHACC_LoadZ1(0x10000);
+        </code>
+     */
+    void MATHACC_LoadZ1(uint32_t value);
 
-   @Example
-    <code>
-    MATHACC_LoadZ2(0x10000);
-    </code>
-*/
-void MATHACC_LoadZ2(uint32_t value);
+    /**
+      @Summary
+        Load a value to Z2 register
 
-/**
-  @Summary
-    Read the result
+      @Description
+        Load a value to Z2 register
 
-  @Description
-    Read the result available in PIDOUT registers.
+      @Preconditions
+        None
 
-  @Preconditions
-    None
+      @Param
+        value - 17bit value to be loaded to Z2 register
 
-  @Param
-    None
+      @Returns
+        None
 
-  @Returns
-    Return the result of type 'MATHACCResult'
+       @Example
+        <code>
+        MATHACC_LoadZ2(0x10000);
+        </code>
+     */
+    void MATHACC_LoadZ2(uint32_t value);
 
-  @Example
-    <code>
-    MATHACCResult result = MATHACC_ResultGet();
-    </code>
-*/
-MATHACCResult MATHACC_ResultGet(void);
+    /**
+      @Summary
+        Read the result
 
-/**
-  @Summary
-    Clear the result
+      @Description
+        Read the result available in PIDOUT registers.
 
-  @Description
-    Clear the result by clearing PIDOUT registers.
+      @Preconditions
+        None
 
-  @Preconditions
-    None
+      @Param
+        None
 
-  @Param
-    None
+      @Returns
+        Return the result of type 'MATHACCResult'
 
-  @Returns
-    None
+      @Example
+        <code>
+        MATHACCResult result = MATHACC_ResultGet();
+        </code>
+     */
+    MATHACCResult MATHACC_ResultGet(void);
 
-  @Example
-    <code>
-    MATHACC_ClearResult();
-    </code>
-*/
-void MATHACC_ClearResult(void);
+    /**
+      @Summary
+        Clear the result
 
-/**
-  @Summary
-    Checks for overflow error
+      @Description
+        Clear the result by clearing PIDOUT registers.
 
-  @Description
-    Checks for overflow error
+      @Preconditions
+        None
 
-  @Preconditions
-    None
+      @Param
+        None
 
-  @Param
-    None
+      @Returns
+        None
 
-  @Returns
-    true - in case of overflow error
-    false - if no overflow error
+      @Example
+        <code>
+        MATHACC_ClearResult();
+        </code>
+     */
+    void MATHACC_ClearResult(void);
 
-  @Example
-    <code>
-    Refer MATHACC_Initialize() example
-    </code>
-*/
-bool MATHACC_HasOverflowOccured(void);
+    /**
+      @Summary
+        Checks for overflow error
+
+      @Description
+        Checks for overflow error
+
+      @Preconditions
+        None
+
+      @Param
+        None
+
+      @Returns
+        true - in case of overflow error
+        false - if no overflow error
+
+      @Example
+        <code>
+        Refer MATHACC_Initialize() example
+        </code>
+     */
+    bool MATHACC_HasOverflowOccured(void);
 
 #ifdef __cplusplus  // Provide C++ Compatibility
 

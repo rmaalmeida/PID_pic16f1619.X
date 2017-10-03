@@ -58,7 +58,8 @@ void main(void) {
     MATHACC_LoadK2(i_k2);
     MATHACC_LoadK3(i_k3);
 
-
+    
+    res = 0;
     for (;;) {
 
 
@@ -69,50 +70,26 @@ void main(void) {
             if (sp == (712)) {
                 sp = (312);
                 IO_RC5_SetLow();
+                MATHACC_SetReference(312);
             } else {
                 IO_RC5_SetHigh();
                 sp = (712);
+                MATHACC_SetReference(712);
             }
         }
         ad = ADC_GetConversion(channel_AN9);
-        /*
-          ADC_StartConversion();
-        while (!ADC_IsConversionDone());
-        res = ADC_GetConversionResult();
-         * */
 
-//Hardware - 61.17 us
-//SW fixed - 90.69 us
-//SW float - 520.1 us
+        //Hardware - 8.17 us
+        //SW fixed - 90.69 us
+        //SW float - 520.1 us
         IO_RA5_SetHigh();
-       /*
-        temp = MATHACC_PIDControllerModeResultGet(sp, ad);
 
-
-        res = (((int32_t) (temp.byteU&0x7)) << 24)+(((int32_t) temp.byteHH) << 16)+ (((int16_t) temp.byteHL) << 8) + temp.byteLH;
-
-        if (temp.byteU & 0x04) {
-            res |= 0xf8000000;
-        }
- if (res > 1023) {
-            res = 1023;
-            PID1OUTLL = 0;
-            PID1OUTLH = 0xff;
-            PID1OUTHL = 0x3;
-            PID1OUTHH = 0;
-            PID1OUTU = 0;
-
-        } else if (res < 0) {
-            res = 0;
-            MATHACC_ClearResult();
-        }
-        */
-        res = pid_sw_fixed(ad);
+        res = MATHACC_PIDResult(ad);
+        //res = pid_sw_fixed(ad);
         //res = pid_sw_float(ad);
-       
+
         IO_RA5_SetLow();
         PWM3_LoadDutyValue(res);
-        DAC1_SetOutput(res >> 2);
         while (!TMR0_HasOverflowOccured());
 
     }
@@ -141,8 +118,6 @@ int16_t pid_sw_float(int16_t ad) {
     //stated in terms of errors instead of coefficients
     f_y0 = f_y1 + (f_k1 * f_e0) + (f_k2 * f_e1) + (f_k3 * f_e2);
 
-    //create "out" variable as temp or saturate y0 itself?
-
     // Saturation
     if (f_y0 > MAX_SAT) {
         f_y0 = MAX_SAT;
@@ -150,15 +125,10 @@ int16_t pid_sw_float(int16_t ad) {
         f_y0 = MIN_SAT;
     }
 
-    //SETA_SAIDA(out)
-
     return f_y0;
 }
 
 int pid_sw_fixed(int ad) {
-    //    int16_t i_k1 = i_kp + (int32_t)i_ki * i_T/SHIFT + i_kd / i_T*SHIFT;
-    //    int16_t i_k2 = -(i_kp + (int32_t)2 * i_kd*SHIFT / i_T);
-    //    int16_t i_k3 = (int32_t)i_kd*SHIFT / i_T;
     const int16_t i_k1 = (f_kp + f_ki * f_T + f_kd / f_T) * SHIFT;
     const int16_t i_k2 = -((f_kp + 2 * f_kd / f_T) * SHIFT);
     const int16_t i_k3 = (f_kd / f_T) * SHIFT;
@@ -178,11 +148,10 @@ int pid_sw_fixed(int ad) {
     //            (i_ki * (e0) * i_T) +
     //            (i_kd * (e0 - (2 * e1) + e2) / i_T);
     //stated in terms of errors instead of coefficients
-    i_y0 = (((int32_t) i_k1 * i_e0) + ((int32_t) i_k2 * i_e1)  + ((int32_t) i_k3 * i_e2));
-    i_y0 = i_y0>>8;
+    i_y0 = (((int32_t) i_k1 * i_e0) + ((int32_t) i_k2 * i_e1) + ((int32_t) i_k3 * i_e2));
+    i_y0 = i_y0 >> 8;
     i_y0 += i_y1;
-            
-    //create "out" variable as temp or saturate y0 itself?
+
     // Saturation
     if (i_y0 > MAX_SAT) {
         i_y0 = MAX_SAT;
@@ -190,6 +159,5 @@ int pid_sw_fixed(int ad) {
         i_y0 = MIN_SAT;
     }
 
-    //SETA_SAIDA(out)
     return i_y0;
 }

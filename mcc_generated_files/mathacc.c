@@ -21,7 +21,7 @@
     The generated drivers are tested against the following:
         Compiler          :  XC8 1.35
         MPLAB             :  MPLAB X 3.40
-*/
+ */
 
 /*
     (c) 2016 Microchip Technology Inc. and its subsidiaries. You may use this
@@ -43,97 +43,120 @@
 
     MICROCHIP PROVIDES THIS SOFTWARE CONDITIONALLY UPON YOUR ACCEPTANCE OF THESE
     TERMS.
-*/
+ */
 
 /**
   Section: Included Files
-*/
+ */
 
 #include <xc.h>
 #include "mathacc.h"
 
 /**
   Section: MATHACC APIs
-*/
+ */
 
 
 
 
-void MATHACC_Initialize(void)
-{
+void MATHACC_Initialize(void) {
     // set the PID module to the options selected in the User Interface
     // PID1MODE PID Controller; PID1EN enabled; 
     PID1CON = 0x85;
-    
+
     PID1K1H = (uint8_t) ((0 & 0xFF00) >> 8);
-    PID1K1L = (uint8_t)  (0 & 0x00FF);
+    PID1K1L = (uint8_t) (0 & 0x00FF);
     PID1K2H = (uint8_t) ((0 & 0xFF00) >> 8);
-    PID1K2L = (uint8_t)  (0 & 0x00FF);
+    PID1K2L = (uint8_t) (0 & 0x00FF);
     PID1K3H = (uint8_t) ((0 & 0xFF00) >> 8);
-    PID1K3L = (uint8_t)  (0 & 0x00FF);
+    PID1K3L = (uint8_t) (0 & 0x00FF);
+}
+uint16_t setp;
+
+void MATHACC_SetReference(int16_t setpoint) {
+    setp = setpoint;
+    PID1SETH = (uint8_t) (((uint16_t) setpoint & 0xFF00) >> 8);
+    PID1SETL = (uint8_t) (setpoint & 0x00FF);
 }
 
-                    
-MATHACCResult MATHACC_PIDControllerModeResultGet(int16_t setpoint, int16_t input)
-{
+int16_t MATHACC_PIDResult(int16_t input) {
+    int16_t temp;
+    PID1INH = (uint8_t) (((uint16_t) input & 0xFF00) >> 8);
+    PID1INL = (uint8_t) (input & 0x00FF); // starts module operation
+
+    while (PID1CONbits.PID1BUSY == 1); // wait for the module to complete
+
+    temp =  (((int16_t) PID1OUTHL) << 8) + PID1OUTLH;
+
+    if (PID1OUTU & 0x04) {
+        //temp |= 0xf8000000;
+        temp = 0;
+         MATHACC_ClearResult();
+    }else if (((PID1OUTU&0x07) != 0)|| (PID1OUTHH != 0)|| (PID1OUTHL & 0xFC) ) {
+        temp = 1023;
+        PID1OUTLL = 0;
+        PID1OUTLH = 0xff;
+        PID1OUTHL = 0x3;
+        PID1OUTHH = 0;
+        PID1OUTU = 0;
+
+    }
+    return temp;
+  
+}
+
+MATHACCResult MATHACC_PIDControllerModeResultGet(int16_t setpoint, int16_t input) {
     MATHACCResult result;
 
-    PID1SETH = (uint8_t) (((uint16_t)setpoint & 0xFF00) >> 8);
-    PID1SETL = (uint8_t)  (setpoint & 0x00FF);  
-    PID1INH  = (uint8_t) (((uint16_t)input & 0xFF00) >> 8);
-    PID1INL  = (uint8_t)  (input & 0x00FF);   // starts module operation
+    PID1SETH = (uint8_t) (((uint16_t) setpoint & 0xFF00) >> 8);
+    PID1SETL = (uint8_t) (setpoint & 0x00FF);
+    PID1INH = (uint8_t) (((uint16_t) input & 0xFF00) >> 8);
+    PID1INL = (uint8_t) (input & 0x00FF); // starts module operation
 
-    while (PID1CONbits.PID1BUSY == 1);  // wait for the module to complete
+    while (PID1CONbits.PID1BUSY == 1); // wait for the module to complete
 
     result.byteLL = PID1OUTLL;
     result.byteLH = PID1OUTLH;
     result.byteHL = PID1OUTHL;
     result.byteHH = PID1OUTHH;
-    result.byteU  = PID1OUTU;
-	
+    result.byteU = PID1OUTU;
+
     return result;
-}	
-         
+}
 
-uint32_t MATHACC_Z1Get(void)
-{
+uint32_t MATHACC_Z1Get(void) {
     uint32_t value = 0;
 
-    value = (uint32_t)PID1Z1L & 0x000000FF;
-    value = (value | ((uint32_t)PID1Z1H << 8)) & 0x0000FFFF;
-    value = (value | ((uint32_t)PID1Z1U << 16)) & 0x0001FFFF;
+    value = (uint32_t) PID1Z1L & 0x000000FF;
+    value = (value | ((uint32_t) PID1Z1H << 8)) & 0x0000FFFF;
+    value = (value | ((uint32_t) PID1Z1U << 16)) & 0x0001FFFF;
 
     return value;
 }
 
-uint32_t MATHACC_Z2Get(void)
-{
+uint32_t MATHACC_Z2Get(void) {
     uint32_t value = 0;
 
-    value = (uint32_t)PID1Z2L & 0x000000FF;
-    value = (value | ((uint32_t)PID1Z2H << 8)) & 0x0000FFFF;
-    value = (value | ((uint32_t)PID1Z2U << 16)) & 0x0001FFFF;
+    value = (uint32_t) PID1Z2L & 0x000000FF;
+    value = (value | ((uint32_t) PID1Z2H << 8)) & 0x0000FFFF;
+    value = (value | ((uint32_t) PID1Z2U << 16)) & 0x0001FFFF;
 
     return value;
 }
 
-void MATHACC_LoadZ1(uint32_t value)
-{
+void MATHACC_LoadZ1(uint32_t value) {
     PID1Z1L = (0x000000FF & value);
-    PID1Z1H = ((0x0000FF00 & value)>>8);
-    PID1Z1U = ((0x00010000 & value)>>16);
+    PID1Z1H = ((0x0000FF00 & value) >> 8);
+    PID1Z1U = ((0x00010000 & value) >> 16);
 }
 
-void MATHACC_LoadZ2(uint32_t value)
-{
+void MATHACC_LoadZ2(uint32_t value) {
     PID1Z2L = (0x000000FF & value);
-    PID1Z2H = ((0x0000FF00 & value)>>8);
-    PID1Z2U = ((0x00010000 & value)>>16);
+    PID1Z2H = ((0x0000FF00 & value) >> 8);
+    PID1Z2U = ((0x00010000 & value) >> 16);
 }
-      
 
-MATHACCResult MATHACC_ResultGet(void)
-{
+MATHACCResult MATHACC_ResultGet(void) {
     MATHACCResult data;
 
     data.byteLL = PID1OUTLL;
@@ -145,29 +168,26 @@ MATHACCResult MATHACC_ResultGet(void)
     return data;
 }
 
-void MATHACC_ClearResult(void)
-{
+void MATHACC_ClearResult(void) {
     PID1OUTLL = 0;
     PID1OUTLH = 0;
     PID1OUTHL = 0;
     PID1OUTHH = 0;
-    PID1OUTU  = 0;
+    PID1OUTU = 0;
 }
 
-bool MATHACC_HasOverflowOccured(void)
-{
+bool MATHACC_HasOverflowOccured(void) {
     bool retVal = false;
-    
-    if (1 == PIR5bits.PID1EIF)
-    {
+
+    if (1 == PIR5bits.PID1EIF) {
         retVal = true;
         PIR5bits.PID1EIF = 0;
     }
-    
+
     return retVal;
 }
 // end of file
-     
-        
 
-        
+
+
+
